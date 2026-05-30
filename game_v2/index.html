@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Benyamin Batau Crypto Game</title>
+<meta name="description" content="Idle Tycoon game based on real trading bot scripts by Benyamin Batau">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ══ LOADING ══════════════════════════════════════════════ -->
+<div id="loading-screen">
+  <div class="loading-logo">⚡</div>
+  <div class="loading-title">BENYAMIN BATAU CRYPTO</div>
+  <div class="loading-bar"><div class="loading-fill"></div></div>
+  <div class="loading-sub">Memuat 44 script trading...</div>
+</div>
+
+<!-- ══ HEADER ═══════════════════════════════════════════════ -->
+<div class="header" id="game-ui" style="display:none">
+  <div class="header-top">
+    <div>
+      <div class="game-title">⚡ BENYAMIN BATAU CRYPTO</div>
+    </div>
+    <div class="clock-level">
+      <div id="clock">--:-- WIB</div>
+      <div id="level-display">Lv.1</div>
+    </div>
+  </div>
+  <div class="xp-bar"><div class="xp-fill" id="xp-fill" style="width:0%"></div></div>
+</div>
+
+<!-- ══ MARKET TICKER ════════════════════════════════════════ -->
+<div class="market-ticker" id="market-ticker" style="display:none">⟳ Loading market...</div>
+
+<!-- ══ RESOURCES ════════════════════════════════════════════ -->
+<div class="resources" id="resources-bar" style="display:none">
+  <div class="res-item">
+    <span class="res-icon">💰</span>
+    <span class="res-value" id="res-capital">Rp50rb</span>
+    <span class="res-label">Capital</span>
+  </div>
+  <div class="res-item">
+    <span class="res-icon">📊</span>
+    <span class="res-value" id="res-data">100</span>
+    <span class="res-label">Data</span>
+  </div>
+  <div class="res-item">
+    <span class="res-icon">🔬</span>
+    <span class="res-value" id="res-research">50</span>
+    <span class="res-label">Research</span>
+  </div>
+  <div class="res-item">
+    <span class="res-icon">🤖</span>
+    <span class="res-value" id="res-ai">0</span>
+    <span class="res-label">AI Token</span>
+  </div>
+</div>
+
+<!-- ══ TABS ══════════════════════════════════════════════════ -->
+<div class="tabs" id="tabs-bar" style="display:none">
+  <button class="tab-btn active" data-tab="dashboard" onclick="UI.showTab('dashboard')"><span class="ti">🖥️</span>Bot</button>
+  <button class="tab-btn" data-tab="cards"    onclick="UI.showTab('cards')"   ><span class="ti">🃏</span>Kartu</button>
+  <button class="tab-btn" data-tab="craft"    onclick="UI.showTab('craft')"   ><span class="ti">⚒️</span>Craft</button>
+  <button class="tab-btn" data-tab="research" onclick="UI.showTab('research')"><span class="ti">🔬</span>Lab</button>
+  <button class="tab-btn" data-tab="events"   onclick="UI.showTab('events')"  ><span class="ti">⚔️</span>Events</button>
+</div>
+
+<!-- ══ SCREENS ═══════════════════════════════════════════════ -->
+<div class="screen-wrap" id="screen-wrap" style="display:none">
+
+  <!-- ── DASHBOARD ──────────────────────────────────────── -->
+  <div class="screen active" id="screen-dashboard">
+
+    <div id="offline-banner" style="display:none" class="offline-banner" onclick="claimOfflineReward()">
+      <div class="offline-title">🌙 Bot Profit Saat Kamu Offline!</div>
+      <div class="offline-amount" id="offline-amount">+Rp 0</div>
+      <div class="offline-sub">Tap untuk klaim · Offline cap: 24 jam</div>
+    </div>
+
+    <div id="event-bar" class="event-bar-active" style="display:none"></div>
+    <div id="peak-indicator" style="display:none">⚡ PEAK HOUR! Capital 2× selama 30 mnt!</div>
+
+    <!-- Bot status -->
+    <div class="bot-panel">
+      <div class="bot-header">
+        <span class="bot-name">🤖 Trading Bot</span>
+        <span class="bot-badge">ACTIVE</span>
+      </div>
+      <div class="cps-display" id="cps-big">Rp0/mnt</div>
+      <div class="cps-sub" id="slots-used">0/1 bot aktif · <span id="infra-display">💻 Laptop Bekas</span></div>
+      <div class="cps-sub" style="font-size:10px;color:var(--neon);margin-top:3px" id="cps-label">Rp0/dtk</div>
+
+      <div class="equipped-area">
+        <div class="equipped-label">⚡ Kartu Terpasang</div>
+        <div class="equipped-chips" id="equipped-cards">
+          <div style="color:var(--text2);font-size:10px">Belum ada kartu dipasang</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mini price chart -->
+    <div class="chart-wrap">
+      <div class="chart-label">
+        <span>📈 VEX/IDR Real-time Simulation</span>
+        <span id="vex-price" style="color:var(--neon2)">--</span>
+      </div>
+      <canvas id="price-chart" width="380" height="70"></canvas>
+    </div>
+
+    <!-- Stats -->
+    <div class="stat-grid">
+      <div class="stat-box">
+        <div class="sv" id="stat-profit">Rp0</div>
+        <div class="sl">Total Profit</div>
+      </div>
+      <div class="stat-box">
+        <div class="sv" id="stat-cards">0/26</div>
+        <div class="sl">Cards Owned</div>
+      </div>
+      <div class="stat-box">
+        <div class="sv" id="stat-research">0</div>
+        <div class="sl">Research</div>
+      </div>
+      <div class="stat-box">
+        <div class="sv" id="stat-prestige">0×</div>
+        <div class="sl">Prestige</div>
+      </div>
+    </div>
+
+    <!-- Current chapter -->
+    <div class="chapter-bar" onclick="UI.showStory()">
+      <span id="chapter-title">📖 Chapter 1: The Sleeping Coder</span>
+      <span style="font-size:12px">›</span>
+    </div>
+
+    <!-- Upgrade -->
+    <div class="sec-title">🏗️ Infrastruktur</div>
+    <button class="upgrade-btn" id="upgrade-btn" onclick="UI.doUpgradeInfra()">
+      <div id="upgrade-btn-text">Upgrade Infrastruktur</div>
+      <div class="upgrade-cost-lbl" id="upgrade-cost">...</div>
+    </button>
+
+    <!-- Prestige (hidden until lv 100) -->
+    <div id="prestige-wrap" style="display:none;margin-top:8px">
+      <button onclick="UI.doPrestige()" style="width:100%;background:linear-gradient(135deg,#ff006e,#8338ec);color:white;border:none;border-radius:10px;padding:12px;font-size:13px;font-weight:700;letter-spacing:1px">
+        🌌 PRESTIGE RESET — Multiplier ×2
+      </button>
+    </div>
+  </div>
+
+  <!-- ── CARDS ──────────────────────────────────────────── -->
+  <div class="screen" id="screen-cards">
+    <div class="sec-title">🎁 Buka Pack</div>
+    <div class="pack-row">
+      <div class="pack-tile t-free" onclick="UI.doOpenPack('daily')">
+        <span class="badge-free">DAILY</span>
+        <div class="pe">📦</div>
+        <div class="pn">Starter Pack</div>
+        <div class="pc">3 kartu · Gratis</div>
+      </div>
+      <div class="pack-tile t-data" onclick="UI.doOpenPack('data')">
+        <div class="pe">💾</div>
+        <div class="pn">Data Pack</div>
+        <div class="pc">💰 5,000 Capital</div>
+      </div>
+    </div>
+    <div class="pack-row">
+      <div class="pack-tile t-ai" onclick="UI.doOpenPack('ai')">
+        <div class="pe">🤖</div>
+        <div class="pn">AI Pack</div>
+        <div class="pc">💰 50,000 Capital</div>
+      </div>
+      <div class="pack-tile t-mythic" onclick="UI.doOpenPack('mythic')">
+        <div class="pe">🌌</div>
+        <div class="pn">Mythic Archive</div>
+        <div class="pc">🤖 50 AI Token</div>
+      </div>
+    </div>
+
+    <div class="sec-title">📚 Koleksi — <span id="collection-count">0/26</span></div>
+    <div class="filter-row">
+      <button class="filter-btn active" onclick="UI.currentFilter='all';UI.renderCards();this.parentElement.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));this.classList.add('active')">Semua</button>
+      <button class="filter-btn" onclick="UI.currentFilter='owned';UI.renderCards();this.parentElement.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));this.classList.add('active')">Dimiliki</button>
+      <button class="filter-btn" onclick="UI.currentFilter='common';UI.renderCards();this.parentElement.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));this.classList.add('active')">Common</button>
+      <button class="filter-btn" onclick="UI.currentFilter='rare';UI.renderCards();this.parentElement.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));this.classList.add('active')">Rare</button>
+      <button class="filter-btn" onclick="UI.currentFilter='epic_up';UI.renderCards();this.parentElement.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));this.classList.add('active')">Epic+</button>
+    </div>
+    <div class="card-grid" id="card-grid"></div>
+  </div>
+
+  <!-- ── CRAFT ──────────────────────────────────────────── -->
+  <div class="screen" id="screen-craft">
+    <div style="background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:14px">
+      <div style="font-size:12px;color:var(--neon);font-weight:700;margin-bottom:4px">⚒️ Crafting Lab</div>
+      <div style="font-size:10px;color:var(--text2);line-height:1.5">Gabungkan beberapa script menjadi teknologi baru yang lebih kuat. Semua bahan tetap di koleksi kamu setelah craft.</div>
+    </div>
+    <div class="sec-title">📖 Recipe Book — <span id="craft-count">0</span> tersedia</div>
+    <div id="recipe-list"></div>
+  </div>
+
+  <!-- ── RESEARCH ──────────────────────────────────────── -->
+  <div class="screen" id="screen-research">
+    <div style="background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div style="font-size:11px;color:var(--text2)">Research Points</div>
+        <div style="font-size:18px;font-weight:700;color:var(--purple)">🔬 <span id="rp-big">0</span></div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:10px;color:var(--text2)">Unlocked</div>
+        <div style="font-size:16px;font-weight:700;color:var(--neon)"><span id="research-count">0</span>/30</div>
+      </div>
+    </div>
+    <div id="research-content"></div>
+  </div>
+
+  <!-- ── EVENTS ─────────────────────────────────────────── -->
+  <div class="screen" id="screen-events">
+    <div class="sec-title">⚔️ Boss Battle</div>
+    <div class="boss-card">
+      <div class="boss-header">
+        <div>
+          <div id="boss-name">🐋 The Whale King</div>
+          <div class="boss-meta">
+            <span id="boss-hp-text">100K / 100K</span>
+            <span id="boss-dps">DPS: 100</span>
+            <span id="boss-eta">ETA: ~30m</span>
+          </div>
+        </div>
+        <div style="font-size:32px">👑</div>
+      </div>
+      <div class="boss-hp-bar">
+        <div id="boss-hp-fill" style="width:100%"></div>
+      </div>
+      <div id="boss-lore" class="boss-lore"></div>
+      <div class="boss-dmg-flash" id="boss-dmg-flash"></div>
+      <button class="attack-btn" onclick="UI.doBossAttack()">⚔️ SERANG BOSS</button>
+    </div>
+
+    <div class="sec-title">🌐 Trigger Event</div>
+    <div class="event-tiles">
+      <div class="event-tile t-bull" onclick="UI.doTriggerEvent('bull')">
+        <div class="ee">🐂</div>
+        <div class="en">Bull Run</div>
+        <div class="ed">Capital 2× selama 10 mnt</div>
+        <div class="et">+Capital</div>
+      </div>
+      <div class="event-tile t-crash" onclick="UI.doTriggerEvent('crash')">
+        <div class="ee">📉</div>
+        <div class="en">Flash Crash</div>
+        <div class="ed">Butuh Emergency Close card</div>
+        <div class="et">⚠️ Bahaya</div>
+      </div>
+      <div class="event-tile t-whale" onclick="UI.doTriggerEvent('whale')">
+        <div class="ee">🐳</div>
+        <div class="en">Whale Attack</div>
+        <div class="ed">Volatilitas ekstrem</div>
+        <div class="et">Neutral</div>
+      </div>
+      <div class="event-tile t-ai_rev" onclick="UI.doTriggerEvent('ai_rev')">
+        <div class="ee">🧠</div>
+        <div class="en">AI Revolution</div>
+        <div class="ed">Research 3× selama 15 mnt</div>
+        <div class="et">+Research</div>
+      </div>
+    </div>
+
+    <div class="sec-title">🏆 Achievement</div>
+    <div id="ach-list" style="display:grid;grid-template-columns:1fr 1fr;gap:6px"></div>
+  </div>
+
+</div><!-- /.screen-wrap -->
+
+<!-- ══ PACK REVEAL OVERLAY ═══════════════════════════════════ -->
+<div id="pack-overlay">
+  <div class="reveal-header">✨ Kartu Baru Ditemukan!</div>
+  <div id="reveal-box">
+    <div id="reveal-particles"></div>
+    <span id="reveal-emoji">🤖</span>
+    <div id="reveal-name">Card Name</div>
+    <div id="reveal-file">file.py</div>
+    <div id="reveal-rarity">RARE</div>
+    <div id="reveal-stats"></div>
+    <div id="reveal-desc"></div>
+    <button class="btn-reveal-claim" onclick="UI.closePackReveal()">✅ TAMBAH KE KOLEKSI</button>
+  </div>
+</div>
+
+<!-- ══ CARD DETAIL MODAL ══════════════════════════════════════ -->
+<div class="modal-overlay" id="card-modal">
+  <div class="modal-sheet">
+    <div class="modal-close-btn"><button onclick="UI.closeModal('card-modal')">✕</button></div>
+    <div id="card-modal-body"></div>
+  </div>
+</div>
+
+<!-- ══ DAILY REWARD MODAL ════════════════════════════════════ -->
+<div class="modal-overlay" id="daily-modal">
+  <div class="modal-sheet">
+    <div class="modal-close-btn"><button onclick="UI.closeModal('daily-modal')">✕</button></div>
+    <div class="daily-sheet">
+      <div class="daily-title">📅 Daily Reward</div>
+      <div class="daily-streak">🔥 Streak: <span id="streak-count">1</span> hari berturut-turut</div>
+      <div class="daily-calendar" id="daily-calendar"></div>
+      <div id="daily-reward-preview" style="background:rgba(255,215,0,0.05);border:1px solid rgba(255,215,0,0.3);border-radius:10px;padding:12px;text-align:center;margin-bottom:14px;font-size:13px;color:var(--gold)">
+        🎁 Hari ini: Loading...
+      </div>
+      <button class="claim-btn" onclick="UI.doDailyReward()">🎁 KLAIM REWARD HARI INI</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CHAPTER MODAL ═════════════════════════════════════════ -->
+<div class="modal-overlay" id="chapter-modal">
+  <div class="modal-sheet">
+    <div class="modal-close-btn"><button onclick="UI.closeModal('chapter-modal')">✕</button></div>
+    <div class="chapter-sheet">
+      <div class="chapter-big-emoji" id="chapter-emoji">📖</div>
+      <div class="chapter-modal-title" id="chapter-title-modal">Chapter 1</div>
+      <div class="chapter-story-text" id="chapter-story">Loading...</div>
+      <div class="chapter-reward-box" id="chapter-reward">Reward: ...</div>
+      <button onclick="UI.closeModal('chapter-modal')" style="width:100%;background:var(--purple);color:white;border:none;border-radius:10px;padding:12px;font-size:13px;font-weight:700">📖 LANJUT MAIN</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ACHIEVEMENT POPUP ══════════════════════════════════════ -->
+<div id="achievement-popup">
+  <div id="ach-emoji">🏆</div>
+  <div class="ach-text">
+    <div class="ach-header">Achievement Unlocked!</div>
+    <div id="ach-name">Achievement Name</div>
+    <div id="ach-desc">Description</div>
+    <div id="ach-reward">Reward</div>
+  </div>
+</div>
+
+<!-- ══ TOAST ══════════════════════════════════════════════════ -->
+<div id="toast"></div>
+
+<!-- ══ SCRIPTS ════════════════════════════════════════════════ -->
+<script src="js/data.js"></script>
+<script src="js/engine.js"></script>
+<script src="js/ui.js"></script>
+<script>
+// ── BOOTSTRAP ─────────────────────────────────────────────────
+(function boot() {
+  // Loading animation
+  setTimeout(() => {
+    document.getElementById('loading-screen').style.opacity = '0';
+    document.getElementById('loading-screen').style.transition = 'opacity 0.5s';
+    setTimeout(() => {
+      document.getElementById('loading-screen').style.display = 'none';
+      document.getElementById('game-ui').style.display = 'block';
+      document.getElementById('market-ticker').style.display = 'block';
+      document.getElementById('resources-bar').style.display = 'flex';
+      document.getElementById('tabs-bar').style.display = 'flex';
+      document.getElementById('screen-wrap').style.display = 'block';
+      startGame();
+    }, 500);
+  }, 2000);
+})();
+
+function startGame() {
+  const loaded = loadGame();
+  // Offline reward
+  const offlineReward = calcOfflineReward();
+  if (offlineReward && offlineReward.capital > 100) {
+    const banner = document.getElementById('offline-banner');
+    banner.style.display = 'block';
+    document.getElementById('offline-amount').textContent = '+' + fmtCap(offlineReward.capital);
+    banner.dataset.capital  = offlineReward.capital;
+    banner.dataset.research = offlineReward.research;
+    banner.dataset.data     = offlineReward.data;
+  }
+  // Init prices
+  MARKET_COINS.forEach(coin => {
+    if (!G.coinPrices[coin.id]) G.coinPrices[coin.id] = coin.basePrice;
+  });
+  // Render achievements in events tab
+  renderAchievements();
+  // Daily calendar
+  renderDailyCalendar();
+  // Collection count
+  updateCollectionCount();
+  // Craft count
+  updateCraftCount();
+  // Research count
+  updateResearchCount();
+  // Show prestige button at lv 100
+  setInterval(() => {
+    document.getElementById('prestige-wrap').style.display = G.level >= 100 ? 'block' : 'none';
+    document.getElementById('rp-big').textContent = Math.floor(G.researchPoints);
+    document.getElementById('research-count').textContent = G.unlockedResearch.length;
+    updateCollectionCount();
+  }, 1000);
+  // VEX price display
+  setInterval(() => {
+    const vex = G.coinPrices['vex'];
+    if (vex) document.getElementById('vex-price').textContent = fmtCap(vex);
+  }, 1000);
+  UI.init();
+}
+
+function claimOfflineReward() {
+  const banner = document.getElementById('offline-banner');
+  const capital  = parseFloat(banner.dataset.capital || 0);
+  const research = parseFloat(banner.dataset.research || 0);
+  const data     = parseFloat(banner.dataset.data || 0);
+  G.capital += capital;
+  G.researchPoints += research;
+  G.dataMarket += data;
+  G.totalCapitalEarned += capital;
+  banner.style.display = 'none';
+  UI.showToast(`💰 Klaim ${fmtCap(capital)} offline reward!`, 'success');
+}
+
+function renderAchievements() {
+  const list = document.getElementById('ach-list');
+  if (!list) return;
+  list.innerHTML = '';
+  ACHIEVEMENTS.forEach(ach => {
+    const done = G.achievedIds.includes(ach.id);
+    const div = document.createElement('div');
+    div.style.cssText = `background:var(--panel);border:1px solid ${done ? 'var(--gold)' : 'var(--border)'};border-radius:8px;padding:8px;text-align:center;opacity:${done ? '1' : '0.4'}`;
+    div.innerHTML = `<div style="font-size:20px">${ach.emoji}</div><div style="font-size:9px;font-weight:700;margin-top:3px">${ach.name}</div><div style="font-size:8px;color:var(--text2);margin-top:1px">${ach.desc}</div>`;
+    list.appendChild(div);
+  });
+}
+
+function renderDailyCalendar() {
+  const cal = document.getElementById('daily-calendar');
+  if (!cal) return;
+  cal.innerHTML = '';
+  const streak = G.loginStreak;
+  for (let i = 1; i <= 7; i++) {
+    const div = document.createElement('div');
+    div.className = 'cal-day' + (i < streak ? ' claimed' : i === streak ? ' today' : '');
+    div.textContent = i < streak ? '✓' : i === streak ? '★' : i;
+    cal.appendChild(div);
+  }
+  const reward = DAILY_REWARDS.find(r => r.day === streak) || DAILY_REWARDS[0];
+  document.getElementById('daily-reward-preview').textContent = '🎁 Hari ' + streak + ': ' + reward.label;
+  document.getElementById('streak-count').textContent = streak;
+}
+
+function updateCollectionCount() {
+  const el = document.getElementById('collection-count');
+  if (el) el.textContent = G.ownedCards.length + '/' + CARDS_DB.length;
+}
+function updateCraftCount() {
+  const craftable = RECIPES.filter(r => r.ingredients.every(i => G.ownedCards.includes(i))).length;
+  const el = document.getElementById('craft-count');
+  if (el) el.textContent = craftable;
+}
+function updateResearchCount() {
+  const el = document.getElementById('research-count');
+  if (el) el.textContent = G.unlockedResearch.length;
+}
+</script>
+</body>
+</html>
